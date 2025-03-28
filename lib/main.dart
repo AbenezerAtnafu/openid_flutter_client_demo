@@ -25,9 +25,9 @@ Future<Client> getClient() async {
   if (!kIsWeb && Platform.isAndroid) uri = uri.replace(host: '10.0.2.2');
   var clientId = 'test-client';
 
-  var clientSecret = 'test-client';
+  // var clientSecret = 'test-client';
   var issuer = await Issuer.discover(uri);
-  return Client(issuer, clientId, clientSecret: clientSecret);
+  return Client(issuer, clientId);
 }
 
 Future<void> main() async {
@@ -60,6 +60,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   UserInfo? userInfo;
   String? access_token;
+  Duration? expires_in;
 
   @override
   void initState() {
@@ -68,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           this.userInfo = userInfo;
           this.access_token = access_token;
+          this.expires_in = expires_in;
         });
       });
     }
@@ -85,6 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
             if (userInfo != null) ...[
               Text('Hello ${userInfo!.name}'),
               Text(userInfo!.email ?? ''),
+              Text('Expires in ${expires_in ?? ''}'),
               Container(
                 padding: EdgeInsets.all(8),
                 margin: EdgeInsets.symmetric(vertical: 8),
@@ -121,11 +124,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () async {
                   var credential = await authenticate(client, scopes: scopes);
                   var userInfo = await credential.getUserInfo();
-                  var tokenResponse = await credential.getTokenResponse();
+                  var tokenResponse = await credential.getTokenResponse(true);
                   print(tokenResponse);
                   setState(() {
                     this.userInfo = userInfo;
                     this.access_token = tokenResponse.accessToken;
+                    this.expires_in = tokenResponse.expiresIn;
                   });
                 },
               ),
